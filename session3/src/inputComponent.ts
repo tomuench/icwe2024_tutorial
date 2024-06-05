@@ -1,30 +1,27 @@
+import { BasicComponent } from './basicComponent';
+import { component } from './decorators';
+import { HelloWorld } from './helloWorld';
 
-export class InputComponent extends HTMLElement {
-	constructor() {
-		super();
-		this.attachShadow({ mode: 'open' });
-	}
-
-	connectedCallback() {
-		this.render();
-		this.shadowRoot?.querySelector('input')?.addEventListener('input', this.onInputChange.bind(this));
+@component('input-component', `
+	<input type="text" placeholder="Enter greeting" />
+`)
+export class InputComponent extends BasicComponent {
+	render() {
+		if (this.shadowRoot) {
+			this.shadowRoot.innerHTML = this.templateForRender;
+			const input = this.shadowRoot.querySelector('input');
+			if (input) {
+				input.addEventListener('input', this.onInputChange.bind(this));
+			}
+		}
 	}
 
 	onInputChange(event: Event) {
 		const input = event.target as HTMLInputElement;
-		const helloWorldElement = document.querySelector('hello-world');
+		const helloWorldElement = document.querySelector('hello-world') as HelloWorld;
+
 		if (helloWorldElement) {
 			helloWorldElement.setAttribute('name', input.value);
 		}
 	}
-
-	render() {
-		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = `
-				<input type="text" placeholder="Enter greeting" />
-			`;
-		}
-	}
 }
-
-customElements.define('input-component', InputComponent);

@@ -1,35 +1,21 @@
 
-export class HelloWorld extends HTMLElement {
-	constructor() {
-		super();
-		this.attachShadow({ mode: 'open' });
-	}
+import { BasicComponent } from './basicComponent';
+import { observedAttribute, component } from './decorators';
 
-	connectedCallback() {
-		this.render();
-	}
-
-	static get observedAttributes() {
-		return ['name'];
-	}
-
-	attributeChangedCallback(
-		name: string, 
-		oldValue: string | null, 
-		newValue: string | null) {
-		if (oldValue !== newValue) {
-			this.render();
-		}
-	}
+@component('hello-world', `
+	<div id="container"></div>
+`)
+export class HelloWorld extends BasicComponent {
+	@observedAttribute
+	name!: string;
 
 	render() {
 		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = `
-				<div>Hello ${this.getAttribute('name') || 'Hello, World!'}</div>
-			`;
+			this.shadowRoot.innerHTML = this.templateForRender;
+			const container = this.shadowRoot.getElementById('container');
+			if (container) {
+				container.textContent = this.name || 'Hello, World!';
+			}
 		}
 	}
 }
-
-// Define the new element
-customElements.define('hello-world', HelloWorld);
