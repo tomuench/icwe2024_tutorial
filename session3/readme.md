@@ -30,9 +30,12 @@ touch src/basicComponent.ts
 Open `src/basicComponent.ts` and add the following code:
 
 ```typescript
-// src/basicComponent.ts
-
 export abstract class BasicComponent extends HTMLElement {
+    
+    get templateForRender() {
+        return (this as any).template || "";
+    }
+
 	static get observedAttributes() {
 		return this._observedAttributes || [];
 	}
@@ -52,6 +55,7 @@ export abstract class BasicComponent extends HTMLElement {
 
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
 		if (oldValue !== newValue) {
+            (this as any)[name] = newValue;
 			this.render();
 		}
 	}
@@ -75,8 +79,6 @@ touch src/decorators.ts
 Open `src/decorators.ts` and add the following code:
 
 ```typescript
-// src/decorators.ts
-
 import { BasicComponent } from './basicComponent';
 
 export function observedAttribute(target: BasicComponent, propertyKey: string) {
@@ -117,8 +119,6 @@ export function component(tagName: string, template: string) {
 
 We will now create an enhanced `HelloWorld` component using the `BasicComponent` class and the decorators.
 
-#### Step 4.1: Update the HelloWorld Component
-
 Open `src/helloWorld.ts` and modify it to use the `BasicComponent` class and decorators:
 
 ```typescript
@@ -134,7 +134,7 @@ export class HelloWorld extends BasicComponent {
 
 	render() {
 		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = this.template;
+			this.shadowRoot.innerHTML = this.templateForRender;
 			const container = this.shadowRoot.getElementById('container');
 			if (container) {
 				container.textContent = this.name || 'Hello, World!';
@@ -144,18 +144,18 @@ export class HelloWorld extends BasicComponent {
 }
 ```
 
+**Attention**: You have to activate experimentalDecorators in your Typescript-Config.
+
 ### 5. Create an Enhanced InputComponent
 
 We will create an `InputComponent` that interacts with the `HelloWorld` component, using the `BasicComponent` class and decorators.
 
-#### Step 5.1: Update the InputComponent
-
 Open `src/inputComponent.ts` and modify it as follows:
 
 ```typescript
-
 import { BasicComponent } from './basicComponent';
 import { component } from './decorators';
+import { HelloWorld } from './helloWorld';
 
 @component('input-component', `
 	<input type="text" placeholder="Enter greeting" />
@@ -163,7 +163,7 @@ import { component } from './decorators';
 export class InputComponent extends BasicComponent {
 	render() {
 		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = this.template;
+			this.shadowRoot.innerHTML = this.templateForRender;
 			const input = this.shadowRoot.querySelector('input');
 			if (input) {
 				input.addEventListener('input', this.onInputChange.bind(this));
@@ -174,8 +174,9 @@ export class InputComponent extends BasicComponent {
 	onInputChange(event: Event) {
 		const input = event.target as HTMLInputElement;
 		const helloWorldElement = document.querySelector('hello-world') as HelloWorld;
+
 		if (helloWorldElement) {
-			helloWorldElement.name = input.value;
+			helloWorldElement.setAttribute('name', input.value);
 		}
 	}
 }
