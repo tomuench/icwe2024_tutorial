@@ -128,7 +128,7 @@ export class InputComponent extends HTMLElement {
 		const input = event.target as HTMLInputElement;
 		const helloWorldElement = document.querySelector('hello-world');
 		if (helloWorldElement) {
-			helloWorldElement.setAttribute('greeting', input.value);
+			helloWorldElement.setAttribute('name', input.value);
 		}
 	}
 
@@ -151,6 +151,7 @@ Open `src/index.ts` and modify it to import the `InputComponent` and use both co
 ```typescript
 
 import './helloWorld';
+import './inputComponent';
 
 // Append the new element to the body
 document.body.innerHTML = `
@@ -175,7 +176,7 @@ In this session, you learned the fundamentals of Web Components, created a custo
 
 
 ## Self Reflection Questions
-1. How does the Shadow DOM enhance the encapsulation and modularity of Web Components?
+1. How much boilerplate code we have?
 2. What are the different lifecycle hooks available in Web Components, and what are their purposes?
 3. How do observed attributes and the attributeChangedCallback method work together to handle changes in component properties?
 4. What are the steps involved in creating and using a custom web component in a TypeScript project?
