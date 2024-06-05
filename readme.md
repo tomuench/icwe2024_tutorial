@@ -22,10 +22,11 @@ The tutorial is divided into six sessions, each focusing on different aspects of
 
 3. **Boost the Developer Experience**
    - Implement tools and practices to enhance productivity.
+   - Use typescript decorators to enhance DevEx
    - [Read more](session3/readme.md)
 
 4. **Connecting Web Components to a Page**
-   - Integrate web components into HTML pages.
+   - Integrate web components into HTML pages (Atomic Design).
    - Handle events and data binding.
    - Structure a web application using components.
    - [Read more](session4/readme.md)
