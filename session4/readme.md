@@ -4,6 +4,8 @@
 
 In this session, we will focus on integrating web components into HTML pages using Atomic Design principles. We will handle events and data binding, and structure a web application using components. By the end of this session, you will understand how to organize your components effectively and create a scalable web application structure.
 
+**Attention**: The include of files into the index.ts is not described.
+
 ## Objectives
 
 - Integrate web components into HTML pages using Atomic Design principles.
@@ -16,15 +18,39 @@ Make sure you have completed [Session 3: Boost the Developer Experience](../sess
 
 ## Steps
 
-### 1. Organize Source Directory Structure
+### 1. Organize Source Directory Structure and add previous components
 
+#### 1.1. Create Folders 
 We will organize our source directory to follow the Atomic Design principles. Create directories for atoms, molecules, and organisms.
 
 ```bash
 mkdir -p src/components/atoms
 mkdir -p src/components/molecules
 mkdir -p src/components/organisms
+
+touch src/components/atoms/index.ts
+touch src/components/molecules/index.ts
+touch src/components/organisms/index.ts
 ```
+
+### 1.2. Copy or create decorators and previous components
+
+Create basics folder with an index:
+
+```bash
+mkdir -p src/basics
+touch src/basics/index.ts
+```
+
+Move your previous components:
+
+```bash
+move src/decorators.ts src/basics/
+move src/basicComponent.ts src/basics/
+```
+
+Afterwards you should export the files in the `basics/index.ts`.
+
 
 ### 2. Create Atom Components
 
@@ -39,23 +65,9 @@ touch src/components/atoms/buttonComponent.ts
 Open `src/components/atoms/buttonComponent.ts` and add the following code:
 
 ```typescript
-// src/components/atoms/buttonComponent.ts
-
-import { BasicComponent } from '../../basicComponent';
-import { component } from '../../decorators';
+import { BasicComponent, component } from '../../basics/index';
 
 @component('custom-button', `
-	<style>
-		button {
-			font-size: 16px;
-			padding: 10px 20px;
-			background-color: #6200ea;
-			color: white;
-			border: none;
-			border-radius: 5px;
-			cursor: pointer;
-		}
-	</style>
 	<button><slot></slot></button>
 `)
 export class ButtonComponent extends BasicComponent {
@@ -77,6 +89,12 @@ export class ButtonComponent extends BasicComponent {
 }
 ```
 
+Add the component to the `index.ts` of the atoms folder:
+
+```typescript  
+export * from './buttonComponent.ts'
+```
+
 ### 3. Create Molecule Components
 
 #### Step 3.1: Create Input Field Component
@@ -90,26 +108,15 @@ touch src/components/molecules/inputFieldComponent.ts
 Open `src/components/molecules/inputFieldComponent.ts` and add the following code:
 
 ```typescript
-// src/components/molecules/inputFieldComponent.ts
 
-import { BasicComponent } from '../../basicComponent';
-import { component, observedAttribute } from '../../decorators';
+import { BasicComponent, component, observedAttribute } from '../../basics/index';
+
+
+export interface InputChangeData {
+    value: string;
+} 
 
 @component('input-field', `
-	<style>
-		label {
-			font-size: 14px;
-			margin-bottom: 5px;
-			display: block;
-		}
-		input {
-			font-size: 16px;
-			padding: 8px;
-			margin-bottom: 10px;
-			width: calc(100% - 20px);
-			box-sizing: border-box;
-		}
-	</style>
 	<label id="label"></label>
 	<input type="text" id="input"/>
 `)
@@ -143,7 +150,7 @@ export class InputFieldComponent extends BasicComponent {
 	handleInputChange(event: Event) {
 		const input = event.target as HTMLInputElement;
 		this.value = input.value;
-		this.dispatchEvent(new CustomEvent('input-change', {
+		this.dispatchEvent(new CustomEvent<InputChangeData>('input-change', {
 			detail: { value: input.value },
 			bubbles: true,
 			composed: true,
@@ -152,9 +159,9 @@ export class InputFieldComponent extends BasicComponent {
 
 	render() {
 		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = this.template;
+			this.shadowRoot.innerHTML = this.templateForRender;
 			const labelElement = this.shadowRoot.querySelector('#label');
-			const inputElement = this.shadowRoot.querySelector('#input');
+			const inputElement = this.shadowRoot.querySelector<HTMLInputElement>('#input');
 			if (labelElement) labelElement.textContent = this.label || '';
 			if (inputElement) inputElement.value = this.value || '';
 		}
@@ -175,33 +182,11 @@ touch src/components/organisms/greetingListComponent.ts
 Open `src/components/organisms/greetingListComponent.ts` and add the following code:
 
 ```typescript
-// src/components/organisms/greetingListComponent.ts
-
-import { BasicComponent } from '../../basicComponent';
-import { component } from '../../decorators';
-import '../atoms/buttonComponent';
-import '../molecules/inputFieldComponent';
+import { BasicComponent, component } from '../../basics/index';
+import { ButtonComponent } from '../atoms/index';
+import { InputChangeData, InputFieldComponent } from '../molecules/index';
 
 @component('greeting-list', `
-	<style>
-		.container {
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-		}
-		ul {
-			list-style-type: none;
-			padding: 0;
-			width: 100%;
-			max-width: 400px;
-		}
-		li {
-			background: #f4f4f4;
-			margin: 5px 0;
-			padding: 10px;
-			border-radius: 4px;
-		}
-	</style>
 	<div class="container">
 		<input-field label="Enter greeting:" id="inputField"></input-field>
 		<custom-button id="addButton">Add Greeting</custom-button>
@@ -209,42 +194,47 @@ import '../molecules/inputFieldComponent';
 	</div>
 `)
 export class GreetingListComponent extends BasicComponent {
-	greetings: string[] = [];
+    greetings: string[] = [];
 
-	connectedCallback() {
-		super.connectedCallback();
-		const inputField = this.shadowRoot?.querySelector('#inputField') as InputFieldComponent;
-		const addButton = this.shadowRoot?.querySelector('#addButton') as ButtonComponent;
+    currentValue: string = '';
 
-		addButton.addEventListener('button-click', () => {
-			const newGreeting = inputField.value || '';
-			if (newGreeting) {
-				this.greetings.push(newGreeting);
-				this.render();
-				inputField.value = '';
-			}
-		});
+    private registerEvents() {
+        const inputField = this.shadowRoot?.querySelector('#inputField') as InputFieldComponent;
+        const addButton = this.shadowRoot?.querySelector('#addButton') as ButtonComponent;
 
-		inputField.addEventListener('input-change', (event: CustomEvent) => {
-			const value = event.detail.value;
-			inputField.setAttribute('value', value);
-		});
-	}
+        addButton?.addEventListener('button-click', () => {
+            const newGreeting = this.currentValue || '';
+            if (newGreeting) {
+                this.greetings.push(newGreeting);
+                this.render();
+                this.currentValue = '';
+                inputField.value = '';
+            }
+        });
 
-	render() {
-		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = this.template;
-			const list = this.shadowRoot.querySelector('#list');
-			if (list) {
-				list.innerHTML = '';
-				this.greetings.forEach(greeting => {
-					const listItem = document.createElement('li');
-					listItem.textContent = greeting;
-					list.appendChild(listItem);
-				});
-			}
-		}
-	}
+        inputField?.addEventListener('input-change', ((event: CustomEvent<InputChangeData>) => {
+           this.currentValue = event.detail.value;
+        }) as EventListener);
+    }
+
+    private renderList() {
+        const list = this.shadowRoot?.querySelector('#list');
+        if (list) {
+            list.innerHTML = '';
+            this.greetings.forEach(greeting => {
+                const listItem = document.createElement('li');
+                listItem.textContent = greeting;
+                list.appendChild(listItem);
+            });
+        }
+    }
+
+    override afterRender() {
+        if (this.shadowRoot) {
+            this.renderList();
+            this.registerEvents();
+        }
+    }
 }
 ```
 
@@ -258,10 +248,10 @@ Create an `index.html` file in the `public` directory (or create the `public` di
 
 ```bash
 mkdir -p public
-touch public/index.html
+touch src/pages/index.html
 ```
 
-Open `public/index.html` and add the following code:
+Open `src/pages/index.html` and add the following code:
 
 ```html
 <!DOCTYPE html>
@@ -270,31 +260,7 @@ Open `public/index.html` and add the following code:
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Greeting List</title>
-	<script type="module" src="../src/index.ts"></script>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			margin: 0;
-			padding: 20px;
-			background-color: #f9f9f9;
-		}
-		.container {
-			max-width: 800px;
-			margin: 0 auto;
-			padding: 20px;
-			background: #fff;
-			border-radius: 8px;
-			box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-		}
-		h1 {
-			text-align: center;
-			color: #333;
-		}
-		p {
-			font-size: 16px;
-			color: #666;
-		}
-	</style>
+	<script type="module" src="index.js"></script>
 </head>
 <body>
 	<div class="container">
@@ -306,6 +272,40 @@ Open `public/index.html` and add the following code:
 </html>
 ```
 
+#### 5.2: Add Copy Plugin to RollupJS
+
+First, you need to install `rollup-plugin-copy` as a development dependency.
+
+```bash
+npm install rollup-plugin-copy --save-dev
+```
+
+You need to update your rollup.config.mjs file to include the plugin and configure it to copy files to the desired location.
+
+```javascript
+import typescript from 'rollup-plugin-typescript2';
+import html from '@rollup/plugin-html';
+import serve from 'rollup-plugin-serve';
+import copy from 'rollup-plugin-copy';
+
+export default {
+	input: 'src/index.ts',
+	output: {
+		file: 'public/index.js',
+		format: 'es'
+	},
+	plugins: [
+		typescript(),
+		copy({
+			targets: [
+			  { src: 'src/pages/*', dest: 'public/' },
+			]
+		  }),
+		serve('public'),
+	]
+};
+``` 
+
 ### 6. Update the Entry Point
 
 Ensure that the entry point correctly loads and initializes the components.
@@ -315,24 +315,12 @@ Open `src/index.ts` and ensure it contains:
 ```typescript
 // src/index.ts
 
-import './components/organisms/greetingListComponent';
+import './components/index';
 ```
+
+
 
 ### 7. Build and Serve the Project
-
-Use the scripts created in Session 1 to build and serve the project.
-
-#### Build the Project
-
-Run the following command to build the project:
-
-```bash
-
-
-npm run build
-```
-
-#### Serve the Project
 
 Run the following command to serve the project and watch for changes:
 
@@ -353,5 +341,3 @@ In this session, you learned how to integrate web components into HTML pages usi
 3. **How do you structure a web application using components, and what are the advantages of this approach?**
 4. **What challenges did you encounter when integrating multiple components, and how did you address them?**
 5. **How can the principles and techniques learned in this session improve your overall web development workflow?**
-
-Reflecting on these questions will help you understand the key concepts and practical implementations covered in this session.

@@ -64,7 +64,18 @@ export abstract class BasicComponent extends HTMLElement {
 		this.render();
 	}
 
-	abstract render(): void;
+	
+	render() {
+		if (this.shadowRoot) {
+			this.shadowRoot.innerHTML = this.templateForRender;
+            this.afterRender();
+		}
+	}
+
+    protected afterRender() {
+        // Override this method to do something after render
+    }
+	
 }
 ```
 
@@ -109,8 +120,8 @@ Open `src/decorators.ts` and add the following code:
 ```typescript
 export function component(tagName: string, template: string) {
 	return function (constructor: CustomElementConstructor) {
-		customElements.define(tagName, constructor);
 		constructor.prototype.template = template;
+		customElements.define(tagName, constructor);
 	};
 }
 ```
@@ -132,9 +143,8 @@ export class HelloWorld extends BasicComponent {
 	@observedAttribute
 	name!: string;
 
-	render() {
+	override afterRender() {
 		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = this.templateForRender;
 			const container = this.shadowRoot.getElementById('container');
 			if (container) {
 				container.textContent = this.name || 'Hello, World!';
@@ -161,9 +171,8 @@ import { HelloWorld } from './helloWorld';
 	<input type="text" placeholder="Enter greeting" />
 `)
 export class InputComponent extends BasicComponent {
-	render() {
+	override afterRender() {
 		if (this.shadowRoot) {
-			this.shadowRoot.innerHTML = this.templateForRender;
 			const input = this.shadowRoot.querySelector('input');
 			if (input) {
 				input.addEventListener('input', this.onInputChange.bind(this));
