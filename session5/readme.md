@@ -22,23 +22,20 @@ A service worker is a script that runs in the background and helps manage networ
 
 #### Step 1.1: Create the Service Worker File
 
-Create a new file named `serviceWorker.js` in the `public` directory.
+Create a new file named `serviceWorker.ts` in the `src` directory.
 
 ```bash
-touch public/serviceWorker.js
+touch src/serviceWorker.ts
 ```
 
-Open `public/serviceWorker.js` and add the following code:
+Open `src/serviceWorker.js` and add the following code:
 
 ```javascript
-// public/serviceWorker.js
-
 const CACHE_NAME = 'greeting-app-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
   '/index.js',
-  '/styles.css',
   // Add other assets to cache here
 ];
 
@@ -82,6 +79,48 @@ self.addEventListener('fetch', (event) => {
 });
 ```
 
+#### Step 1.2: Extend RollupJS BuildScript
+
+Our service worker must be published as a single file and not bundled as our existing `index.js`. Therefore, we have to modify our `rollup.config.mjs`.
+
+```javascript
+import typescript from 'rollup-plugin-typescript2';
+import serve from 'rollup-plugin-serve';
+import copy from 'rollup-plugin-copy';
+
+export default [
+  // Output ServiceWorker
+	{
+		input: 'src/serviceWorker.ts',
+		output: {
+			file: 'public/serviceWorker.js',
+			format: 'es'
+		},
+		plugins: [
+			typescript(),
+		]
+	},
+  // Previous Application
+	{
+	input: 'src/index.ts',
+	output: {
+		file: 'public/index.js',
+		format: 'es'
+	},
+	plugins: [
+		typescript(),
+		copy({
+			targets: [
+			  { src: 'src/pages/*', dest: 'public/' },
+			]
+		  }),
+		serve('public'),
+	]
+}];
+
+```
+
+
 ### 2. Register the Service Worker
 
 To use the service worker, we need to register it in our application. We will do this in our main JavaScript file.
@@ -122,33 +161,9 @@ Open `public/index.html` and modify it to include meta tags and the updated scri
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Greeting List</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="manifest.json"> <!-- Not existing yet !-->
   <meta name="theme-color" content="#6200ea">
-  <script type="module" src="../src/index.ts"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f9f9f9;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    p {
-      font-size: 16px;
-      color: #666;
-    }
-  </style>
+  <script type="module" src="index.js"></script>
 </head>
 <body>
   <div class="container">
@@ -166,13 +181,13 @@ The web app manifest provides metadata about the web application and is essentia
 
 #### Step 4.1: Create the Manifest File
 
-Create a new file named `manifest.json` in the `public` directory.
+Create a new file named `manifest.json` in the `src/pages` directory.
 
 ```bash
-touch public/manifest.json
+touch src/pages/manifest.json
 ```
 
-Open `public/manifest.json` and add the following code:
+Open `src/pages/manifest.json` and add the following code:
 
 ```json
 {
@@ -185,12 +200,12 @@ Open `public/manifest.json` and add the following code:
   "description": "A simple greeting list application demonstrating the use of web components and PWA features.",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
@@ -200,30 +215,21 @@ Open `public/manifest.json` and add the following code:
 
 ### 5. Add Icons for the PWA
 
-PWA requires icons for different sizes. Create an `icons` directory inside the `public` directory and add icon images.
+PWA requires icons for different sizes. Create an `icons` directory inside the `src/pages` directory and add icon images.
 
 #### Step 5.1: Create Icons Directory and Add Icons
 
-Create the `icons` directory and add icon images (e.g., `icon-192x192.png` and `icon-512x512.png`).
+Create the `icons` directory and add icon images (e.g., `icon-192.png` and `icon-512.png`). 
 
 ```bash
-mkdir -p public/icons
+mkdir -p src/pages/icons
 # Add your icon images to the public/icons directory
+# Alternativly: We provided some icons for you.
 ```
 
 ### 6. Build and Serve the Project
 
-Use the scripts created in Session 1 to build and serve the project.
-
-#### Build the Project
-
-Run the following command to build the project:
-
-```bash
-npm run build
-```
-
-#### Serve the Project
+Use the scripts created in Session 1 to serve the project.
 
 Run the following command to serve the project and watch for changes:
 
@@ -254,5 +260,3 @@ In this session, you learned how to transform your web application into an Offli
 3. **What are the key components of a web app manifest, and why are they important?**
 4. **What steps are involved in registering a service worker, and how does it enhance the functionality of a web application?**
 5. **How can the principles and techniques learned in this session be applied to improve the resilience and user experience of other web applications?**
-
-Reflecting on these questions will help you understand the key concepts and practical implementations covered in this session.
