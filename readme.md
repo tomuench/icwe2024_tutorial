@@ -47,6 +47,8 @@ The tutorial is divided into six sessions, each focusing on different aspects of
 
 For more details, including the full tutorial content and additional resources, visit the official tutorial page: [Design and Implementation of a Progressive Web Application from Scratch](https://tomuench.github.io/icwe2024_web_comps_tutorial/)
 
+This tutorial series is part of the 24th International Conference on Web Engineering (ICWE 2024). For more information about the conference and other related sessions, visit the official ICWE 2024 website.
+
 ---
 
 Each session builds upon the previous one, gradually guiding you through the entire process of developing a PWA from scratch. By the end of this tutorial, you will have the knowledge and skills to create your own Progressive Web Applications using modern web development techniques.
