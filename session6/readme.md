@@ -16,57 +16,19 @@ Make sure you have completed [Session 5: Offline-Ready Progressive Web App](../s
 
 ## Steps
 
-### 1. Organize Project Structure
-
-We will organize our project to support multiple HTML files.
-
-```bash
-mkdir -p public/views
-```
-
-### 2. Create Views
+### 1. Create Views
 
 Create different HTML files for our multi-page application.
 
-#### Step 2.1: Create Home View
-
-Create a new file named `home.html` in the `public/views` directory.
-
-```bash
-touch public/views/home.html
-```
-
-Open `public/views/home.html` and add the following code:
-
-```html
-<!-- public/views/home.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home</title>
-  <link rel="stylesheet" href="../styles.css">
-</head>
-<body>
-  <div class="container">
-    <h1>Home</h1>
-    <p>Welcome to the Greeting List Application!</p>
-    <p><a href="greetings.html">Go to Greetings</a></p>
-  </div>
-</body>
-</html>
-```
-
-#### Step 2.2: Create Greetings View
+#### Step 1.1: Create another greetings View
 
 Create a new file named `greetings.html` in the `public/views` directory.
 
 ```bash
-touch public/views/greetings.html
+touch src/pages/greetings.html
 ```
 
-Open `public/views/greetings.html` and add the following code:
+Open `src/pages/greetings.html` and add the following code:
 
 ```html
 <!-- public/views/greetings.html -->
@@ -82,7 +44,7 @@ Open `public/views/greetings.html` and add the following code:
 <body>
   <div class="container">
     <h1>Greetings</h1>
-    <p>Manage your greetings here.</p>
+    <p>Manage your other greetings over here.</p>
     <greeting-list id="greetingList"></greeting-list>
     <p><a href="home.html">Go to Home</a></p>
   </div>
