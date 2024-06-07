@@ -2,27 +2,73 @@
 
 ## Introduction
 
-In this session, we will focus on building a client-side multi-page application with routing, and learn how to store data using local storage. We will manage state within our Progressive Web App (PWA) and use server-side includes to manage multiple HTML files. By the end of this session, you will understand how to implement multi-page routing, persist data, and manage state in a web application.
+In this session, we will focus on building a client-side multi-page application with routing and learn how to store data using local storage. We will manage state within our Progressive Web App (PWA) and use server-side includes (SSI) syntax to manage multiple HTML files. Additionally, we will create a `GreetingProvider` class for accessing local storage, ensuring it is a singleton, and using a specific page as a key.
 
 ## Objectives
 
 - Implement client-side routing for a multi-page application.
 - Use local storage for data persistence.
 - Manage state within a PWA.
+- Use server-side includes syntax and replace placeholders during the build process because we just use serve by rol
+- Build a `GreetingProvider` as a singleton class for accessing local storage.
+- Use a specific id as a key in `GreetingProvider`.
 
 ## Prerequisites
 
-Make sure you have completed [Session 5: Offline-Ready Progressive Web App](../session5/readme.md). We will build upon the concepts and code from that session.
+Make sure you have completed [Session 5: Offline-Ready Progressive Web App](../session5/readme.md). We will build upon the concepts and code from that session. Assume you have a finished `index.html` before starting this session.
 
 ## Steps
 
-### 1. Create Views
+### 1. Add Navigation by Server-Side Includes and Create Home Page
 
-Create different HTML files for our multi-page application.
+We will create a navigation bar using server-side includes and create a `home.html` file with some description of the greetings page.
 
-#### Step 1.1: Create another greetings View
+#### Step 1.1: Create Menu Include
 
-Create a new file named `greetings.html` in the `public/views` directory.
+Create a new file named `menu.html` in the `src` directory.
+
+```bash
+touch src/partials/menu.html
+```
+
+Open `src/partials/menu.html` and add the following code:
+
+```html
+<!-- src/partials/menu.html -->
+<nav>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="greetings.html?id=1">Greetings List 1</a></li>
+    <li><a href="greetings.html?id=2">Greetings List 2</a></li>
+  </ul>
+</nav>
+```
+
+#### Step 1.2: Update index.html
+
+Assuming you have a finished `src/pages/index.html`, modify it to include the menu and add a description for the home page. The GreetingsComponent will be moved to a new page.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Home</title>
+  <!--#include virtual="/partials/header.html" -->
+</head>
+<body>
+  <!--#include virtual="/partials/menu.html" -->
+  <div class="container">
+    <h1>Welcome to the Greeting List Application!</h1>
+    <p>This application allows you to manage multiple greeting lists. Navigate to the greetings page to add and view greetings.</p>
+  </div>
+</body>
+</html>
+```
+
+
+#### Step 1.3: Move Greetings from index.html to greetings.html
+
+Create a new file named `greetings.html` in the `src/pages` directory.
 
 ```bash
 touch src/pages/greetings.html
@@ -31,66 +77,82 @@ touch src/pages/greetings.html
 Open `src/pages/greetings.html` and add the following code:
 
 ```html
-<!-- public/views/greetings.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Greetings</title>
-  <link rel="stylesheet" href="../styles.css">
-  <script type="module" src="../greetings.js" defer></script>
+  <!--#include virtual="/partials/header.html" -->
 </head>
 <body>
+  <div class="menu">
+    <!--#include virtual="/partials/menu.html" -->
+  </div>
   <div class="container">
     <h1>Greetings</h1>
-    <p>Manage your other greetings over here.</p>
+    <p>Manage your greetings here.</p>
     <greeting-list id="greetingList"></greeting-list>
     <p><a href="home.html">Go to Home</a></p>
   </div>
+  <script>
+    // Set the listId parameter inside the greetings.html
+    const urlParams = new URLSearchParams(window.location.search);
+    const listId = urlParams.get('id') || 'default';
+    document.getElementById('greetingList').setAttribute('id', listId);
+  </script>
 </body>
 </html>
 ```
 
-### 3. Create Entry Scripts for Views
+Add `greetings.html` to `serviceWorker.js` to store it offline.
 
-Create JavaScript entry files for each view.
+### 3. Create GreetingProvider Singleton
 
-#### Step 3.1: Create Entry Script for Home View
+We will create a `GreetingProvider` class to handle local storage access, ensuring it is a singleton and using a specific page as a key.
 
-Create a new file named `home.js` in the `public` directory.
+#### Step 3.1: Create GreetingProvider Class
 
-```bash
-touch public/home.js
-```
-
-Open `public/home.js` and add the following code:
-
-```javascript
-// public/home.js
-
-// This script can be empty or contain specific logic for the home view
-```
-
-#### Step 3.2: Create Entry Script for Greetings View
-
-Create a new file named `greetings.js` in the `public` directory.
+Create a new file named `providers/greetingProvider.ts` in the `src` directory.
 
 ```bash
-touch public/greetings.js
+touch src/providers/greetingProvider.ts
 ```
 
-Open `public/greetings.js` and add the following code:
+Open `src/providers/greetingProvider.ts` and add the following code:
 
-```javascript
-// public/greetings.js
+```typescript
+// src/greetingProvider.ts
 
-import '../src/components/organisms/greetingListComponent.js';
+export default class GreetingProvider {
+  private static instances: { [key: string]: GreetingProvider } = {};
+  private key: string;
+
+  private constructor(page: string) {
+    this.key = `greetings_${page}`;
+  }
+
+  public static getInstance(page: string): GreetingProvider {
+    if (!GreetingProvider.instances[page]) {
+      GreetingProvider.instances[page] = new GreetingProvider(page);
+    }
+    return GreetingProvider.instances[page];
+  }
+
+  public getGreetings(): string[] {
+    const data = localStorage.getItem(this.key);
+    return data ? JSON.parse(data) : [];
+  }
+
+  public addGreeting(greeting: string): void {
+    const greetings = this.getGreetings();
+    greetings.push(greeting);
+    localStorage.setItem(this.key, JSON.stringify(greetings));
+  }
+}
 ```
 
-### 4. Create Greeting List Component with Local Storage
+### 4. Update Greeting List Component
 
-We will update the `GreetingListComponent` to use local storage for storing and retrieving greetings.
+We will update the `GreetingListComponent` to use `GreetingProvider` for storing and retrieving greetings based on the listId.
 
 #### Step 4.1: Update Greeting List Component
 
@@ -99,31 +161,12 @@ Open `src/components/organisms/greetingListComponent.ts` and modify it:
 ```typescript
 // src/components/organisms/greetingListComponent.ts
 
-import { BasicComponent } from '../../basicComponent';
-import { component } from '../../decorators';
-import '../atoms/buttonComponent';
-import '../molecules/inputFieldComponent';
+import { BasicComponent, component } from '../../basics/index';
+import { ButtonComponent } from '../atoms/index';
+import { InputChangeData, InputFieldComponent } from '../molecules/index';
+import GreetingProvider from '../../providers/greetingProvider';
 
 @component('greeting-list', `
-  <style>
-    .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    ul {
-      list-style-type: none;
-      padding: 0;
-      width: 100%;
-      max-width: 400px;
-    }
-    li {
-      background: #f4f4f4;
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 4px;
-    }
-  </style>
   <div class="container">
     <input-field label="Enter greeting:" id="inputField"></input-field>
     <custom-button id="addButton">Add Greeting</custom-button>
@@ -131,178 +174,145 @@ import '../molecules/inputFieldComponent';
   </div>
 `)
 export class GreetingListComponent extends BasicComponent {
-  greetings: string[] = [];
+    greetings: string[] = [];
+    provider: GreetingProvider | undefined;
 
-  connectedCallback() {
-    super.connectedCallback();
-    const inputField = this.shadowRoot?.querySelector('#inputField') as InputFieldComponent;
-    const addButton = this.shadowRoot?.querySelector('#addButton') as ButtonComponent;
+    currentValue: string = '';
 
-    addButton.addEventListener('button-click', () => {
-      const newGreeting = inputField.value || '';
-      if (newGreeting) {
-        this.greetings.push(newGreeting);
-        this.render();
-        localStorage.setItem('greetings', JSON.stringify(this.greetings));
-        inputField.value = '';
-      }
-    });
-
-    inputField.addEventListener('input-change', (event: CustomEvent) => {
-      const value = event.detail.value;
-      inputField.setAttribute('value', value);
-    });
-
-    this.greetings = JSON.parse(localStorage.getItem('greetings') || '[]');
-    this.render();
-  }
-
-  render() {
-    if (this.shadowRoot) {
-      this.shadowRoot.innerHTML = this.template;
-      const list = this.shadowRoot.querySelector('#list');
-      if (list) {
-        list.innerHTML = '';
-        this.greetings.forEach(greeting => {
-          const listItem = document.createElement('li');
-          listItem.textContent = greeting;
-          list.appendChild(listItem);
-        });
-      }
+    constructor() {
+        super();
+        this.initializeAndLoadGreetings();
     }
-  }
+
+
+    private addGreeting(greeting: string): void {
+        this.provider?.addGreeting(greeting);
+        this.greetings.push(greeting);
+    }
+
+
+    private initializeAndLoadGreetings() {
+        const listId = this.getAttribute('data-list-id') || 'default';
+        this.provider = GreetingProvider.getInstance(listId);
+        this.greetings = this.provider.getGreetings();
+    }
+
+    private registerEvents() {
+        const inputField = this.shadowRoot?.querySelector('#inputField') as InputFieldComponent;
+        const addButton = this.shadowRoot?.querySelector('#addButton') as ButtonComponent;
+
+        addButton?.addEventListener('button-click', () => {
+            const newGreeting = this.currentValue || '';
+            if (newGreeting) {
+                this.addGreeting(newGreeting);
+                this.render();
+                this.currentValue = '';
+                inputField.value = '';
+            }
+        });
+
+        inputField?.addEventListener('input-change', ((event: CustomEvent<InputChangeData>) => {
+            this.currentValue = event.detail.value;
+        }) as EventListener);
+    }
+
+    private renderList() {
+        const list = this.shadowRoot?.querySelector('#list');
+        if (list) {
+            list.innerHTML = '';
+            this.greetings.forEach(greeting => {
+                const listItem = document.createElement('li');
+                listItem.textContent = greeting;
+                list.appendChild(listItem);
+            });
+        }
+    }
+
+    override afterRender() {
+        if (this.shadowRoot) {
+            this.renderList();
+            this.registerEvents();
+        }
+    }
 }
 ```
 
-### 5. Update the HTML Page with Server-Side Includes
+### 5. Update Rollup Configuration for SSI Replacement
 
-To manage multiple HTML files efficiently, we can use server-side includes (SSI). Make sure your server supports SSI (e.g., Apache or Nginx).
+We will update the Rollup configuration and a custom plugin to replace SSI placeholders with the actual content.
 
-#### Step 5.1: Update the Home HTML Page
+#### Step 5.3: Update `rollup.config.mjs`
 
-Open `public/views/home.html` and add the following code at the top:
+Open `rollup.config.mjs` and modify it to include `ssi-replace-plugin.js`. The file is already provided:
 
-```html
-<!--#include virtual="/header.html" -->
+```javascript
+// rollup.config.mjs
+import typescript from 'rollup-plugin-typescript2';
+import serve from 'rollup-plugin-serve';
+import copy from 'rollup-plugin-copy';
+import ssiReplace from './config/ssi-replace-plugin.mjs';
+
+export default [
+	{
+		input: 'src/serviceWorker.ts',
+		output: {
+			file: 'public/serviceWorker.js',
+			format: 'es'
+		},
+		plugins: [
+			typescript(),
+		]
+	},
+	{
+		input: 'src/index.ts',
+		output: {
+			file: 'public/index.js',
+			format: 'es'
+		},
+		plugins: [
+			typescript(),
+			copy({
+				targets: [
+					{
+						src: ['src/pages/*.json', 'src/pages/icons/*.png'],
+						dest: 'public/'
+					},
+					{
+						src: ['src/pages/icons/*.png'],
+						dest: 'public/icons',
+					},
+					{
+						src: 'src/pages/*.html',
+						dest: 'public/',
+						transform: (contents, filename) => ssiReplace(contents,filename)
+					},
+				]
+			}),
+			serve('public'),
+		]
+	}];
 ```
 
-#### Step 5.2: Update the Greetings HTML Page
+### 6. Build and Serve the Project
 
-Open `public/views/greetings.html` and add the following code at the top:
-
-```html
-<!--#include virtual="/header.html" -->
-```
-
-#### Step 5.3: Create the Header Include
-
-Create a new file named `header.html` in the `public` directory.
+Run the following command to serve the project and watch for changes:
 
 ```bash
-touch public/header.html
+npm run serve
 ```
 
-Open `public/header.html` and add the following code:
-
-```html
-<!-- public/header.html -->
-<nav>
-  <ul>
-    <li><a href="/views/home.html">Home</a></li>
-    <li><a href="/views/greetings.html">Greetings</a></li>
-  </ul>
-</nav>
-```
-
-### 6. Update Styles
-
-Create a CSS file to style the application.
-
-#### Step 6.1: Create Styles File
-
-Create a new file named `styles.css` in the `public` directory.
-
-```bash
-touch public/styles.css
-```
-
-Open `public/styles.css` and add the following code:
-
-```css
-/* public/styles.css */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 20px;
-  background-color: #f9f9f9;
-}
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-h1 {
-  text-align: center;
-  color: #333;
-}
-p {
-  font-size: 16px;
-  color: #666;
-}
-nav ul {
-  list-style-type: none;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-nav ul li {
-  display: inline;
-}
-nav ul li a {
-  text-decoration: none;
-  color: #6200ea;
-}
-```
-
-### 7. Build and Serve the Project
-
-Use the scripts created in Session 1 to build and serve the project.
-
-#### Build the Project
-
-Run the following command to build the project:
-
-```bash
-npm run build
-```
-
-#### Serve the Project
-
-Ensure your server supports SSI and serve the project. If using a simple HTTP server for development, you can use a tool like `http-server` which supports SSI.
-
-```bash
-npm install -g http-server
-http-server -c-1 --proxy http://localhost:8080
-```
-
-Open your web browser and navigate to `http://localhost:8080/views/home.html` to see the multi-page application with routing and data persistence in action.
+Open your web browser and navigate to `http://localhost:10001/` to see the multi-page application with routing and data persistence in action.
 
 ## Conclusion
 
-In this session, you learned how to implement client-side routing for a multi-page application using multiple HTML files and server-side includes
-
-. You also learned how to use local storage for data persistence and manage state within a Progressive Web App (PWA). These skills will help you create more dynamic, responsive, and resilient web applications.
+In this session, you learned how to implement client-side routing for a multi-page application using multiple HTML files and server-side includes. You also learned how to use local storage for data persistence and manage state within a Progressive Web App (PWA). Additionally, you configured Rollup to replace SSI placeholders with actual content during the build process using `rollup-plugin-copy` and a custom plugin.
 
 ## Self-Reflection Questions
 
 1. **What are the benefits of using multiple HTML files for a multi-page application?**
 2. **How does local storage help in persisting data across sessions?**
 3. **What is the role of server-side includes in managing multiple HTML files efficiently?**
-4. **What challenges did you encounter when implementing routing and data persistence, and how did you overcome them?**
+4. **How does the custom Rollup plugin help in replacing SSI placeholders during the build process?**
 5. **How can the principles and techniques learned in this session be applied to improve the functionality and user experience of other web applications?**
 
 Reflecting on these questions will help you understand the key concepts and practical implementations covered in this session.
