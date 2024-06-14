@@ -28,7 +28,9 @@ We will create a navigation bar using server-side includes and create a `home.ht
 Create a new file named `menu.html` in the `src` directory.
 
 ```bash
-touch src/partials/menu.html
+mkdir -p src/pages/partials
+touch src/pages/partials/menu.html
+touch src/pages/partials/header.html
 ```
 
 Open `src/partials/menu.html` and add the following code:
@@ -42,6 +44,16 @@ Open `src/partials/menu.html` and add the following code:
     <li><a href="greetings.html?id=2">Greetings List 2</a></li>
   </ul>
 </nav>
+```
+
+
+Open `src/partials/header.html` and add the following code:
+
+```html
+<!-- src/partials/header.html -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script type="module" src="index.js"></script>
 ```
 
 #### Step 1.2: Update index.html
@@ -114,6 +126,7 @@ We will create a `GreetingProvider` class to handle local storage access, ensuri
 Create a new file named `providers/greetingProvider.ts` in the `src` directory.
 
 ```bash
+mkdir -p src/providers
 touch src/providers/greetingProvider.ts
 ```
 
@@ -314,5 +327,3 @@ In this session, you learned how to implement client-side routing for a multi-pa
 3. **What is the role of server-side includes in managing multiple HTML files efficiently?**
 4. **How does the custom Rollup plugin help in replacing SSI placeholders during the build process?**
 5. **How can the principles and techniques learned in this session be applied to improve the functionality and user experience of other web applications?**
-
-Reflecting on these questions will help you understand the key concepts and practical implementations covered in this session.
