@@ -45,8 +45,8 @@ touch src/basics/index.ts
 Move your previous components:
 
 ```bash
-move src/decorators.ts src/basics/
-move src/basicComponent.ts src/basics/
+mv src/decorators.ts src/basics/
+mv src/basicComponent.ts src/basics/
 ```
 
 Afterwards you should export the files in the `basics/index.ts`.
@@ -92,7 +92,7 @@ export class ButtonComponent extends BasicComponent {
 Add the component to the `index.ts` of the atoms folder:
 
 ```typescript  
-export * from './buttonComponent.ts'
+export * from './buttonComponent'
 ```
 
 ### 3. Create Molecule Components
@@ -247,7 +247,7 @@ We will create an HTML page that uses our `GreetingListComponent` and provides s
 Create an `index.html` file in the `public` directory (or create the `public` directory if it doesn't exist).
 
 ```bash
-mkdir -p public
+mkdir -p src/pages
 touch src/pages/index.html
 ```
 
@@ -318,7 +318,7 @@ Open `src/index.ts` and ensure it contains:
 import './components/index';
 ```
 
-
+If this file does not exists, export all your `atom`, `molecules` and `organisms` from it.
 
 ### 7. Build and Serve the Project
 
