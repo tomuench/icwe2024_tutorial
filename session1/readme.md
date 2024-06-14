@@ -34,13 +34,7 @@ npm install rollup --save-dev
 ```
 
 ### 3. Create Rollup Configuration
-Create a file named `rollup.config.mjs`
-
-```bash
-touch rollup.config.mjs
-```
-
- and add the following configuration:
+Create a file named `rollup.config.mjs` and add the following configuration:
 
 ```javascript
 export default {
@@ -53,15 +47,7 @@ export default {
 ```
 ### 4. Create TypeScript Configuration
 
-Create a file named `tsconfig.json` 
-
-
-```bash
-touch tsconfig.json
-```
-
-
-and add the following configuration:
+Create a file named `tsconfig.json` and add the following configuration:
 
 ```json
 {
@@ -128,7 +114,7 @@ Update the scripts section of your `package.json` file to include commands for b
 
 ```javascript
 {
-  "name": "ICWE2024",
+  "name": "icwe2024",
   "version": "1.0.0",
   "description": "Write what you want",
   "scripts": {
@@ -153,6 +139,7 @@ npm run build
 npm run serve
 ```
 
+But the commands are failing, because we need du build something to publish.
 
 ### 9. Add your first web component
 First, ensure that you have a src directory in your project root. This directory will contain all your TypeScript source files. Inside the src directory, create a new TypeScript file named `helloWorld.ts`. This file will contain the code for our Hello World web component.

@@ -27,11 +27,11 @@ Web Components consist of three main technologies:
 
 ### 2. Create Custom Elements Using TypeScript
 
-We will extend our custom web component called `HelloWorld` from the previous session. Therefore, open `src/helloWorld.ts` and extend it by the following code:
+We will extend our custom web component called `HelloWorld` from the previous session.  We will extend it with an attribute `name` to say hello to a name. 
+
+Therefore, open `src/helloWorld.ts` and extend it by the following code:
 
 ```typescript
-// src/helloWorld.ts
-
 export class HelloWorld extends HTMLElement {
 	constructor() {
 		super();
@@ -58,7 +58,7 @@ export class HelloWorld extends HTMLElement {
 	render() {
 		if (this.shadowRoot) {
 			this.shadowRoot.innerHTML = `
-				<div>${this.getAttribute('name') || 'Hello, World!'}</div>
+				<div>Hello ${this.getAttribute('name') || 'World!'}</div>
 			`;
 		}
 	}
@@ -97,12 +97,11 @@ To use the `HelloWorld` component, we need to import it and add it to our HTML
 Open `src/index.ts` and modify it to import the `HelloWorld` component and use it:
 
 ```typescript
-// src/index.ts
-
 import './helloWorld';
 
 // Append the new element to the body
 const helloWorldElement = document.createElement('hello-world');
+// That's the same as <hello-world name="xxx"></hello-world>
 helloWorldElement.setAttribute('name', 'your name');
 document.body.appendChild(helloWorldElement);
 ```
@@ -110,7 +109,7 @@ document.body.appendChild(helloWorldElement);
 ### 7. Interactive Component
 We will create a second component called `InputComponent` that contains an input field. When the input value changes, it will update the name attribute of the `HelloWorld` component.
 
-Create the file `src/InputComponent.ts` and add the following code:
+Create the file `src/inputComponent.ts` and add the following code:
 
 ```typescript
 export class InputComponent extends HTMLElement {
