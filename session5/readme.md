@@ -28,7 +28,7 @@ Create a new file named `serviceWorker.ts` in the `src` directory.
 touch src/serviceWorker.ts
 ```
 
-Open `src/serviceWorker.js` and add the following code:
+Open `src/serviceWorker.ts` and add the following code:
 
 ```javascript
 const CACHE_NAME = 'greeting-app-cache-v1';
@@ -40,7 +40,7 @@ const urlsToCache = [
 ];
 
 // Install the service worker
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (event: any) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -50,7 +50,7 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate the service worker
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', (event: any) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -66,7 +66,7 @@ self.addEventListener('activate', (event) => {
 });
 
 // Fetch requests and serve from cache
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (event: any) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -224,7 +224,7 @@ Create the `icons` directory and add icon images (e.g., `icon-192.png` and `icon
 ```bash
 mkdir -p src/pages/icons
 # Add your icon images to the public/icons directory
-# Alternativly: We provided some icons for you.
+# Alternativly: We provided some icons for you. :-)
 ```
 
 ### 6. Build and Serve the Project
