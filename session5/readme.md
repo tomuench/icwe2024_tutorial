@@ -132,7 +132,7 @@ Open `src/index.ts` and add the following code to register the service worker:
 ```typescript
 // src/index.ts
 
-import './components/organisms/greetingListComponent';
+import './components/index';
 
 // Register the service worker
 if ('serviceWorker' in navigator) {
