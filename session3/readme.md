@@ -147,7 +147,7 @@ export class HelloWorld extends BasicComponent {
 		if (this.shadowRoot) {
 			const container = this.shadowRoot.getElementById('container');
 			if (container) {
-				container.textContent = this.name || 'Hello, World!';
+				container.textContent = this.name ? `Hello ${this.name}` : 'Hello, World!';
 			}
 		}
 	}
