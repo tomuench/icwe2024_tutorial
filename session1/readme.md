@@ -19,10 +19,10 @@ When prompted, fill in the following details:
 
 
 ``` bash
-name: ICWE2024 [Your-Name]
+name: icwe2024-[Your-Name]
 version: 1.0.0
 description: Write what you want
-scripts: []
+entry point: src/index.ts
 ```
 
 
@@ -34,7 +34,13 @@ npm install rollup --save-dev
 ```
 
 ### 3. Create Rollup Configuration
-Create a file named `rollup.config.mjs` and add the following configuration:
+Create a file named `rollup.config.mjs`
+
+```bash
+touch rollup.config.mjs
+```
+
+ and add the following configuration:
 
 ```javascript
 export default {
@@ -47,7 +53,15 @@ export default {
 ```
 ### 4. Create TypeScript Configuration
 
-Create a file named `tsconfig.json` and add the following configuration:
+Create a file named `tsconfig.json` 
+
+
+```bash
+touch tsconfig.json
+```
+
+
+and add the following configuration:
 
 ```json
 {
